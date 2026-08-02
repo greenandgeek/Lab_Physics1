@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio de Física Mecánica</title>
+<!-- =================================================================
+     LABORATORIO DE FÍSICA MECÁNICA — Scrollytelling autocontenido
+     Todo el CSS y JS están embebidos. Sin dependencias externas.
+     Paleta: azul profundo · cian · blanco · púrpura · destellos
+     ================================================================= -->
+<style>
+/* ============================================================
+   1. TOKENS Y RESET
+   ============================================================ */
+:root{
+  --deep:#050a1f;          /* azul profundo casi negro */
+  --deep-2:#0a1435;        /* azul profundo panel */
+  --navy:#12224f;          /* azul medio */
+  --cyan:#3ee6ff;          /* cian luminoso */
+  --cyan-soft:#7ff3ff;
+  --purple:#8b7cff;        /* púrpura */
+  --purple-soft:#b6aaff;
+  --white:#eaf3ff;
+  --muted:#9fb2d8;
+  --glass:rgba(18,34,79,.35);
+  --glass-brd:rgba(126,243,255,.22);
+  --glow:0 0 24px rgba(62,230,255,.35);
+  --shadow:0 20px 60px rgba(0,0,0,.55);
+  --radius:20px;
+  --font-display:'Space Grotesk','Segoe UI',system-ui,sans-serif;
+  --font-body:'Inter','Segoe UI',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--deep);
+  color:var(--white);
+  overflow-x:hidden;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em;line-height:1.1}
+a{color:inherit;text-decoration:none}
+img,svg{display:block}
+::selection{background:var(--cyan);color:var(--deep)}
+
+/* Tipografías web embebidas por @import (mantiene autocontenido: no hay archivos locales) */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+
+/* ============================================================
+   2. INDICADOR DE PROGRESO DE LECTURA
+   ============================================================ */
+#progress-bar{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--cyan),var(--purple));
+  z-index:1000;box-shadow:var(--glow);transition:width .1s linear;
+}
+
+/* ============================================================
+   3. NAV FLOTANTE
+   ============================================================ */
+#nav{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);
+  z-index:900;display:flex;align-items:center;gap:6px;
+  padding:8px 10px;border-radius:100px;
+  background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);
+  max-width:calc(100% - 24px);
+}
+#nav .brand{
+  font-family:var(--font-display);font-weight:700;font-size:.82rem;
+  padding:6px 12px;color:var(--cyan);white-space:nowrap;
+  display:flex;align-items:center;gap:7px;
+}
+#nav .brand svg{width:18px;height:18px}
+#nav ul{display:flex;list-style:none;gap:2px}
+#nav a{
+  font-size:.82rem;padding:8px 14px;border-radius:100px;color:var(--muted);
+  transition:.25s;white-space:nowrap;font-weight:500;
+}
+#nav a:hover,#nav a.active{color:var(--white);background:rgba(62,230,255,.14)}
+#nav-toggle{display:none;background:none;border:none;color:var(--cyan);cursor:pointer;padding:8px}
+@media(max-width:820px){
+  #nav ul{
+    position:absolute;top:calc(100% + 8px);right:0;flex-direction:column;
+    background:var(--deep-2);border:1px solid var(--glass-brd);border-radius:16px;
+    padding:8px;box-shadow:var(--shadow);display:none;min-width:190px;
+  }
+  #nav ul.open{display:flex}
+  #nav a{display:block}
+  #nav-toggle{display:block}
+}
+
+/* ============================================================
+   4. HERO
+   ============================================================ */
+#hero{
+  position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 30%,#132250 0%,#081029 45%,var(--deep) 100%);
+}
+#stars,#hero-objects{position:absolute;inset:0;width:100%;height:100%}
+#stars{z-index:1}
+#hero-objects{z-index:2;pointer-events:none}
+/* Ecuaciones flotantes */
+.eq{
+  position:absolute;font-family:var(--font-display);color:rgba(126,243,255,.30);
+  font-size:clamp(1rem,2.4vw,1.7rem);white-space:nowrap;user-select:none;
+  animation:drift linear infinite;text-shadow:0 0 14px rgba(62,230,255,.25);
+}
+@keyframes drift{
+  from{transform:translateY(0) translateX(0)}
+  to{transform:translateY(-40px) translateX(30px)}
+}
+.hero-inner{position:relative;z-index:5;max-width:820px;padding:0 22px}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:22px;
+  padding:7px 16px;border-radius:100px;font-size:.78rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--cyan);
+  background:var(--glass);border:1px solid var(--glass-brd);backdrop-filter:blur(10px);
+  opacity:0;animation:rise .8s .2s forwards;
+}
+.hero-eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#hero h1{
+  font-size:clamp(2.4rem,7vw,5.2rem);
+  background:linear-gradient(120deg,#fff 20%,var(--cyan) 55%,var(--purple) 90%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  opacity:0;animation:rise 1s .4s forwards;
+}
+#hero .lead{
+  margin:26px auto 0;max-width:640px;color:var(--muted);font-size:clamp(1rem,1.6vw,1.15rem);
+  opacity:0;animation:rise 1s .7s forwards;
+}
+.hero-cta{
+  margin-top:38px;display:inline-flex;align-items:center;gap:12px;
+  padding:16px 34px;border-radius:100px;font-family:var(--font-display);font-weight:600;
+  font-size:1.02rem;color:var(--deep);cursor:pointer;border:none;
+  background:linear-gradient(120deg,var(--cyan),var(--purple));
+  box-shadow:0 10px 40px rgba(62,230,255,.4);
+  opacity:0;animation:rise 1s 1s forwards;transition:transform .3s,box-shadow .3s;
+}
+.hero-cta:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 16px 50px rgba(139,124,255,.55)}
+.hero-cta svg{width:20px;height:20px}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+.hero-eyebrow,#hero h1,#hero .lead,.hero-cta{transform:translateY(28px)}
+.scroll-hint{
+  position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:5;
+  color:var(--muted);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:rise 1s 1.4s forwards;
+}
+/*.scroll-hint .mouse{width:22px;height:36px;border:2px solid var(--muted);border-radius:14px;position:relative}
+.scroll-hint .mouse::after{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:4px;height:7px;border-radius:3px;background:var(--cyan);animation:scrolldot 1.6s infinite}
+@keyframes scrolldot{0%{opacity:0;top:6px}40%{opacity:1}80%{opacity:0;top:16px}}*/
+
+/* ============================================================
+   5. LAYOUT DE SECCIONES
+   ============================================================ */
+section{position:relative;padding:110px 22px;max-width:1200px;margin:0 auto}
+.sec-head{max-width:720px;margin:0 auto 60px;text-align:center}
+.sec-eyebrow{
+  display:inline-block;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:14px;font-weight:600;
+}
+.sec-head h2{font-size:clamp(1.9rem,4.5vw,3rem);margin-bottom:16px}
+.sec-head p{color:var(--muted);font-size:1.05rem}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   6. TARJETAS GLASSMORPHISM (Recursos)
+   ============================================================ */
+.grid{display:grid;gap:26px}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.glass-card{
+  position:relative;padding:34px 30px;border-radius:var(--radius);
+  background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);overflow:hidden;
+  transition:transform .35s,border-color .35s,box-shadow .35s;
+}
+.glass-card::before{
+  content:"";position:absolute;inset:0;border-radius:var(--radius);padding:1px;
+  background:linear-gradient(135deg,rgba(62,230,255,.5),transparent 40%,rgba(139,124,255,.4));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .35s;
+}
+.glass-card:hover{transform:translateY(-8px);box-shadow:0 30px 70px rgba(62,230,255,.2)}
+.glass-card:hover::before{opacity:1}
+.card-icon{
+  width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(62,230,255,.18),rgba(139,124,255,.18));
+  border:1px solid var(--glass-brd);margin-bottom:22px;
+}
+.card-icon svg{width:32px;height:32px;stroke:var(--cyan)}
+.glass-card h3{font-size:1.25rem;margin-bottom:10px}
+.glass-card p{color:var(--muted);font-size:.94rem;margin-bottom:22px}
+.card-link{
+  display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem;color:var(--cyan);
+  transition:gap .25s;
+}
+.glass-card:hover .card-link{gap:13px}
+.card-link svg{width:16px;height:16px}
+
+/* ============================================================
+   7. TARJETAS DE LABORATORIO
+   ============================================================ */
+.lab-grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.lab-card{
+  position:relative;border-radius:var(--radius);overflow:hidden;
+  background:linear-gradient(160deg,var(--deep-2),#0a1738);
+  border:1px solid rgba(126,243,255,.14);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;transition:transform .35s,border-color .35s;
+}
+.lab-card:hover{transform:translateY(-8px);border-color:var(--glass-brd)}
+.lab-visual{
+  height:170px;display:flex;align-items:center;justify-content:center;position:relative;
+  background:radial-gradient(circle at 50% 40%,rgba(62,230,255,.12),transparent 70%);
+  border-bottom:1px solid rgba(126,243,255,.1);overflow:hidden;
+}
+.lab-visual svg{width:130px;height:130px}
+.lab-num{
+  position:absolute;top:14px;left:16px;font-family:var(--font-display);font-weight:700;
+  font-size:.8rem;color:var(--purple-soft);letter-spacing:.1em;
+  background:rgba(5,10,31,.6);padding:4px 10px;border-radius:100px;border:1px solid var(--glass-brd);
+}
+.lab-body{padding:26px 24px;flex:1;display:flex;flex-direction:column}
+.lab-body h3{font-size:1.2rem;margin-bottom:8px}
+.lab-body p{color:var(--muted);font-size:.9rem;flex:1;margin-bottom:20px}
+.lab-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:100px;
+  font-size:.86rem;font-weight:600;cursor:pointer;transition:.25s;border:1px solid transparent;
+}
+.btn svg{width:15px;height:15px}
+.btn-guide{background:linear-gradient(120deg,var(--cyan),var(--cyan-soft));color:var(--deep)}
+.btn-guide:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(62,230,255,.4)}
+.btn-video{background:rgba(139,124,255,.16);color:var(--purple-soft);border-color:rgba(139,124,255,.35)}
+.btn-video:hover{background:rgba(139,124,255,.28);transform:translateY(-2px)}
+.btn-soon{background:rgba(159,178,216,.08);color:var(--muted);border-color:rgba(159,178,216,.18);cursor:not-allowed}
+
+/* ============================================================
+   8. CALENDARIO / PROGRAMACIÓN
+   ============================================================ */
+.legend{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+.legend span{display:inline-flex;align-items:center;gap:9px;font-size:.86rem;color:var(--muted)}
+.legend .chip{width:16px;height:16px;border-radius:5px}
+.chip-blue{background:linear-gradient(135deg,var(--cyan),#2aa8ff);box-shadow:0 0 12px rgba(62,230,255,.5)}
+.chip-red{background:linear-gradient(135deg,#ff5c7a,#ff2d55);box-shadow:0 0 12px rgba(255,45,85,.4)}
+.chip-gray{background:rgba(159,178,216,.25)}
+
+.months{display:grid;gap:30px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.month{
+  background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--glass-brd);border-radius:var(--radius);padding:24px 22px;box-shadow:var(--shadow);
+}
+.month h3{font-size:1.12rem;margin-bottom:6px;color:var(--white)}
+.month .mono{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px}
+.mondays{display:flex;flex-direction:column;gap:12px}
+.monday{
+  position:relative;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;
+  border:1px solid transparent;cursor:default;transition:.3s;
+}
+.monday .date{
+  font-family:var(--font-display);font-weight:700;font-size:1.05rem;min-width:52px;
+  display:flex;flex-direction:column;line-height:1;
+}
+.monday .date small{font-size:.6rem;font-weight:500;color:var(--muted);letter-spacing:.1em;margin-top:4px}
+.monday .label{font-size:.86rem;color:var(--white);font-weight:500}
+/* Lunes con práctica (azul) */
+.monday.work{background:rgba(62,230,255,.08);border-color:rgba(62,230,255,.22);cursor:pointer}
+.monday.work .date{color:var(--cyan)}
+.monday.work:hover{background:rgba(62,230,255,.16);transform:translateX(6px);box-shadow:0 8px 26px rgba(62,230,255,.22)}
+.monday.work:hover .date{animation:wobble .5s}
+@keyframes wobble{0%,100%{transform:none}30%{transform:rotate(-7deg) scale(1.08)}60%{transform:rotate(5deg) scale(1.05)}}
+/* Festivos (rojo) */
+.monday.holiday{background:rgba(255,45,85,.08);border-color:rgba(255,45,85,.22)}
+.monday.holiday .date{color:#ff6b85}
+.monday.holiday .label{color:#ffb3c0}
+/* Sin actividad (gris) */
+.monday.off{opacity:.55}
+.monday.off .date{color:var(--muted)}
+.monday.off .label{color:var(--muted)}
+
+/* Tooltip elegante */
+.tooltip{
+  position:fixed;z-index:1200;max-width:300px;padding:18px 20px;border-radius:16px;pointer-events:none;
+  background:rgba(8,16,41,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-brd);box-shadow:0 24px 60px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(8px) scale(.96);transition:opacity .22s,transform .22s;
+}
+.tooltip.show{opacity:1;transform:translateY(0) scale(1)}
+.tooltip h4{font-size:.98rem;color:var(--cyan);margin-bottom:10px;font-family:var(--font-display)}
+.tooltip .mat-title{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-soft);margin-bottom:6px}
+.tooltip ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.tooltip li{font-size:.84rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+.tooltip li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);flex:none}
+
+/* ============================================================
+   9. CENTRO DE AYUDA / FINAL
+   ============================================================ */
+#contacto{max-width:100%;padding:0}
+.help-wrap{
+  position:relative;max-width:1200px;margin:0 auto;padding:100px 22px;overflow:hidden;
+  border-radius:0;
+}
+#constellation{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+.help-inner{position:relative;z-index:3;max-width:640px;margin:0 auto;text-align:center}
+.help-card{
+  padding:52px 40px;border-radius:26px;
+  background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--glass-brd);box-shadow:var(--shadow);
+}
+.help-card .avatar{
+  width:76px;height:76px;border-radius:50%;margin:0 auto 22px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--cyan),var(--purple));box-shadow:0 0 40px rgba(62,230,255,.4);
+}
+.help-card .avatar svg{width:38px;height:38px;stroke:var(--deep)}
+.help-card h2{font-size:clamp(1.6rem,4vw,2.3rem);margin-bottom:8px}
+.help-card .role{color:var(--cyan);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px}
+.help-card .name{font-size:1.3rem;font-family:var(--font-display);margin-bottom:6px}
+.help-card .mail{color:var(--muted);margin-bottom:30px;font-size:.96rem}
+.mail-btn{
+  display:inline-flex;align-items:center;gap:11px;padding:16px 32px;border-radius:100px;
+  font-family:var(--font-display);font-weight:600;font-size:1rem;color:var(--deep);
+  background:linear-gradient(120deg,var(--cyan),var(--purple));cursor:pointer;
+  box-shadow:0 10px 40px rgba(62,230,255,.4);transition:transform .3s,box-shadow .3s;
+}
+.mail-btn:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 16px 50px rgba(139,124,255,.55)}
+
+footer{text-align:center;padding:40px 22px;color:var(--muted);font-size:.82rem;position:relative;z-index:3}
+footer .div{width:60px;height:2px;margin:0 auto 20px;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px}
+
+/* ============================================================
+   10. BOTÓN VOLVER ARRIBA
+   ============================================================ */
+#to-top{
+  position:fixed;bottom:26px;right:26px;z-index:800;width:52px;height:52px;border-radius:50%;
+  background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glass-brd);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);
+  opacity:0;transform:translateY(20px) scale(.8);pointer-events:none;transition:.35s;
+}
+#to-top.show{opacity:1;transform:none;pointer-events:auto}
+#to-top:hover{background:rgba(62,230,255,.2);transform:translateY(-3px)}
+#to-top svg{width:22px;height:22px;stroke:var(--cyan)}
+
+/* ============================================================
+   11. DECORACIÓN AMBIENTAL (engranajes, ondas, etc.)
+   ============================================================ */
+.ambient{position:absolute;pointer-events:none;z-index:0;opacity:.5}
+.gear{animation:spin 22s linear infinite}
+.gear.rev{animation-direction:reverse;animation-duration:16s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wave-deco{width:100%;overflow:hidden;line-height:0}
+.wave-deco svg{width:100%;height:70px}
+
+/* Accesibilidad: respeta reduce-motion */
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto}
+}
+@media(max-width:600px){
+  section{padding:80px 18px}
+  .help-card{padding:40px 26px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ PROGRESO DE LECTURA ============ -->
+<div id="progress-bar"></div>
+
+<!-- ============ NAV FLOTANTE ============ -->
+<nav id="nav">
+  <span class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7 15h10"/></svg>
+    Lab Mecánica
+  </span>
+  <button id="nav-toggle" aria-label="Menú">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <ul id="nav-links">
+    <li><a href="#hero" class="active">Inicio</a></li>
+    <li><a href="#recursos">Recursos iniciales</a></li>
+    <li><a href="#laboratorios">Laboratorios</a></li>
+    <li><a href="#programacion">Programación</a></li>
+    <li><a href="#contacto">Contacto</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<header id="hero">
+  <canvas id="stars"></canvas>
+  <canvas id="hero-objects"></canvas>
+
+  <!-- Ecuaciones flotantes -->
+  <div class="eq" style="top:18%;left:12%;animation-duration:9s">F = ma</div>
+  <div class="eq" style="top:30%;left:78%;animation-duration:11s">x(t)</div>
+  <div class="eq" style="top:62%;left:16%;animation-duration:10s">v = dx/dt</div>
+  <div class="eq" style="top:72%;left:70%;animation-duration:12s">ΣF = 0</div>
+  <div class="eq" style="top:44%;left:8%;animation-duration:13s">τ = Iα</div>
+  <div class="eq" style="top:22%;left:52%;animation-duration:10.5s">g = 9.81 m/s²</div>
+  <div class="eq" style="top:82%;left:40%;animation-duration:14s">a = Δv/Δt</div>
+  <div class="eq" style="top:52%;left:85%;animation-duration:9.5s">E = ½mv²</div>
+
+  <div class="hero-inner">
+    <span class="hero-eyebrow"><span class="dot"></span>Curso · Física Experimental</span>
+    <h1>Laboratorio de<br>Física Mecánica</h1>
+    <p class="lead">Bienvenido al Laboratorio de Física Mecánica. Explora cada sección del curso, accede a las guías, videos y programación de prácticas, y prepárate para aprender la física a través de la experimentación.</p>
+    <button class="hero-cta" onclick="document.getElementById('recursos').scrollIntoView()">
+      Comenzar exploración
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </button>
+  </div>
+
+  <div class="scroll-hint"><span class="mouse"></span>Desliza</div>
+</header>
+
+<!-- ============================================================
+     RECURSOS INICIALES
+     ============================================================ -->
+<section id="recursos">
+  <div class="sec-head reveal">
+    <span class="sec-eyebrow">Punto de partida</span>
+    <h2>Recursos iniciales</h2>
+    <p>Todo lo que necesitas para comenzar con buen pie: conoce a tu docente y domina el formato de informes.</p>
+  </div>
+
+  <div class="grid grid-3">
+    <!-- Presentación de la docente -->
+    <a class="glass-card reveal" href="https://www.youtube.com/watch?v=lnkHzUdAPzM" target="_blank" rel="noopener">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+      </div>
+      <h3>Presentación de la docente</h3>
+      <p>Video de bienvenida donde conocerás la metodología del curso y las expectativas del laboratorio.</p>
+      <span class="card-link">Ver video <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+    </a>
+
+    <!-- Presentación de Informes -->
+    <a class="glass-card reveal" href="https://docs.google.com/document/d/1cNOLaxG6m6OxDpjddvezjfSUokvvhUGN/edit" target="_blank" rel="noopener">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></svg>
+      </div>
+      <h3>Presentación de informes</h3>
+      <p>Guía con la estructura, normas y criterios para redactar y entregar tus informes de laboratorio.</p>
+      <span class="card-link">Abrir documento <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+    </a>
+
+    <!-- Taller análisis gráfico -->
+    <a class="glass-card reveal" href="https://docs.google.com/document/d/1O3RfvQ6xLnbOodgdGSi-_NF_p9aq1hnD/edit" target="_blank" rel="noopener">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 5-7"/></svg>
+      </div>
+      <h3>Taller de análisis gráfico</h3>
+      <p>Ejercicios para dominar la representación de datos, linealización y ajuste de curvas experimentales.</p>
+      <span class="card-link">Abrir taller <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg></span>
+    </a>
+  </div>
+</section>
+
+<!-- Onda decorativa divisoria -->
+<div class="wave-deco reveal">
+  <svg viewBox="0 0 1200 70" preserveAspectRatio="none"><path id="sinewave" d="M0,35 Q75,5 150,35 T300,35 T450,35 T600,35 T750,35 T900,35 T1050,35 T1200,35" fill="none" stroke="rgba(62,230,255,.3)" stroke-width="2"/></svg>
+</div>
+
+<!-- ============================================================
+     LABORATORIOS
+     ============================================================ -->
+<section id="laboratorios">
+  <div class="sec-head reveal">
+    <span class="sec-eyebrow">Prácticas experimentales</span>
+    <h2>Los cinco laboratorios</h2>
+    <p>Cada práctica combina teoría, medición y análisis. Descarga la guía y mira el video antes de cada sesión.</p>
+  </div>
+
+  <div class="lab-grid" id="lab-grid"><!-- Generado por JS --></div>
+</section>
+
+<!-- ============================================================
+     PROGRAMACIÓN — CALENDARIO INTERACTIVO
+     ============================================================ -->
+<section id="programacion">
+  <div class="sec-head reveal">
+    <span class="sec-eyebrow">Cronograma 2026</span>
+    <h2>Programación de prácticas</h2>
+    <p>Solo se muestran los lunes. Pasa el cursor sobre una fecha azul para ver la actividad y los materiales.</p>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="legend reveal">
+    <span><span class="chip chip-blue"></span>Lunes con práctica</span>
+    <span><span class="chip chip-red"></span>Festivo</span>
+    <span><span class="chip chip-gray"></span>Sin actividad</span>
+  </div>
+
+  <div class="months" id="calendar"><!-- Generado por JS --></div>
+</section>
+
+<!-- Tooltip flotante compartido -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- ============================================================
+     CENTRO DE AYUDA / CONTACTO
+     ============================================================ -->
+<section id="contacto">
+  <div class="help-wrap">
+    <canvas id="constellation"></canvas>
+    <div class="help-inner reveal">
+      <div class="help-card">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <span class="role">Centro de ayuda · Contacto docente</span>
+        <h2>¿Tienes dudas?</h2>
+        <p class="name">Leidy Johana Rojas Bohórquez</p>
+        <p class="mail">leidy.rojas01@ustabuca.edu.co</p>
+        <a class="mail-btn" href="mailto:leidy.rojas01@ustabuca.edu.co?subject=Consulta%20Laboratorio%20de%20F%C3%ADsica%20Mec%C3%A1nica">
+          📧 Enviar correo
+        </a>
+      </div>
+    </div>
+    <footer>
+      <div class="div"></div>
+      Laboratorio de Física Mecánica · Aprende la física a través de la experimentación
+    </footer>
+  </div>
+</section>
+
+<!-- ============ BOTÓN VOLVER ARRIBA ============ -->
+<button id="to-top" aria-label="Volver al inicio" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+/* ============================================================
+   JS 1. DATOS DE LABORATORIOS
+   ============================================================ */
+const LABS=[
+  {n:1,name:"Medidas y Errores",desc:"Precisión, exactitud y propagación de incertidumbre en toda medición experimental.",
+   guide:"https://drive.google.com/file/d/0B-Mr9tHCz-rvYTRqSkstb3hSVDA/view?resourcekey=0-hqHmYZCZEUJin72IOFfeEQ",
+   video:"https://www.youtube.com/watch?v=Y-8_7mqQt28",svg:"ruler"},
+  {n:2,name:"Ley de Hooke",desc:"La relación lineal entre fuerza y deformación elástica de un resorte.",
+   guide:"https://drive.google.com/file/d/0B-Mr9tHCz-rvbW5LWjR5RkUteTQ/view?resourcekey=0-ZhdmF2GkK2jANAG71bAeZQ",
+   video:null,svg:"spring"},
+  {n:3,name:"Péndulo Simple",desc:"Periodo, gravedad y movimiento armónico a partir de una masa oscilante.",
+   guide:"https://drive.google.com/file/d/0B-Mr9tHCz-rvQTJhRkVwMDlFc2c/view?resourcekey=0-b08G0gE_Pl6FnD4hdTVxGQ",
+   video:"https://www.youtube.com/watch?v=NGmCyJOIoAc",svg:"pendulum"},
+  {n:4,name:"Suma de Vectores",desc:"Composición de fuerzas y equilibrio mediante la mesa de fuerzas.",
+   guide:"https://drive.google.com/file/d/0B-Mr9tHCz-rvTzhZNlN3bFh0UjA/view?resourcekey=0-kqA5GDb6tOq97RvaoLwQDg",
+   video:"https://youtube.com/watch?v=m_XEZ-b8yiE&t",svg:"vectors"},
+  {n:5,name:"Velocidad Media e Instantánea",desc:"Del desplazamiento promedio al límite instantáneo del movimiento.",
+   guide:"https://drive.google.com/file/d/1c87ocokWJx_Wr-woMHyxdfKGT6qDOstV/view",
+   video:null,svg:"motion"}
+];
+
+/* Ilustraciones SVG animadas embebidas por tipo */
+const LAB_SVG={
+  ruler:`<svg viewBox="0 0 120 120" fill="none" stroke="#3ee6ff" stroke-width="2"><rect x="18" y="46" width="84" height="28" rx="3"/><g stroke-width="1.6"><line x1="30" y1="46" x2="30" y2="60"/><line x1="42" y1="46" x2="42" y2="56"/><line x1="54" y1="46" x2="54" y2="60"/><line x1="66" y1="46" x2="66" y2="56"/><line x1="78" y1="46" x2="78" y2="60"/><line x1="90" y1="46" x2="90" y2="56"/></g><circle cx="60" cy="90" r="4" fill="#8b7cff" stroke="none"><animate attributeName="cx" values="30;90;30" dur="3s" repeatCount="indefinite"/></circle></svg>`,
+  spring:`<svg viewBox="0 0 120 120" fill="none" stroke="#3ee6ff" stroke-width="2"><line x1="60" y1="14" x2="60" y2="26"/><path d="M50,26 h20 M52,34 h16 M50,42 h20 M52,50 h16 M50,58 h20"><animateTransform attributeName="transform" type="translate" values="0 0;0 8;0 0" dur="1.6s" repeatCount="indefinite"/></path><rect x="46" y="64" width="28" height="24" rx="4" fill="#8b7cff" stroke="none"><animateTransform attributeName="transform" type="translate" values="0 0;0 8;0 0" dur="1.6s" repeatCount="indefinite"/></rect><line x1="30" y1="14" x2="90" y2="14"/></svg>`,
+  pendulum:`<svg viewBox="0 0 120 120" fill="none" stroke="#3ee6ff" stroke-width="2"><line x1="30" y1="20" x2="90" y2="20"/><g style="transform-origin:60px 20px"><animateTransform attributeName="transform" type="rotate" values="-22 60 20;22 60 20;-22 60 20" dur="2.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/><line x1="60" y1="20" x2="60" y2="86"/><circle cx="60" cy="92" r="9" fill="#8b7cff" stroke="none"/></g></svg>`,
+  vectors:`<svg viewBox="0 0 120 120" fill="none" stroke="#3ee6ff" stroke-width="2"><line x1="20" y1="100" x2="20" y2="20"/><line x1="20" y1="100" x2="100" y2="100"/><line x1="20" y1="100" x2="80" y2="50" stroke="#3ee6ff"/><path d="M80,50 l-9,0 l5,7 z" fill="#3ee6ff" stroke="none"/><line x1="20" y1="100" x2="55" y2="45" stroke="#8b7cff"><animate attributeName="x2" values="55;70;55" dur="3s" repeatCount="indefinite"/><animate attributeName="y2" values="45;60;45" dur="3s" repeatCount="indefinite"/></line></svg>`,
+  motion:`<svg viewBox="0 0 120 120" fill="none" stroke="#3ee6ff" stroke-width="2"><line x1="14" y1="80" x2="106" y2="80"/><circle cx="24" cy="80" r="7" fill="#8b7cff" stroke="none"><animate attributeName="cx" values="24;96;24" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.3 0 0.7 1;0.3 0 0.7 1"/></circle><g stroke="#3ee6ff" stroke-width="1.4" opacity=".5"><line x1="40" y1="72" x2="40" y2="80"/><line x1="60" y1="72" x2="60" y2="80"/><line x1="80" y1="72" x2="80" y2="80"/></g></svg>`
+};
+
+/* Render de tarjetas de laboratorio */
+const labGrid=document.getElementById('lab-grid');
+LABS.forEach(l=>{
+  const videoBtn = l.video
+    ? `<a class="btn btn-video" href="${l.video}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Video</a>`
+    : `<span class="btn btn-soon">Próximamente</span>`;
+  const card=document.createElement('div');
+  card.className='lab-card reveal';
+  card.innerHTML=`
+    <div class="lab-visual"><span class="lab-num">LAB ${l.n}</span>${LAB_SVG[l.svg]}</div>
+    <div class="lab-body">
+      <h3>${l.name}</h3>
+      <p>${l.desc}</p>
+      <div class="lab-btns">
+        <a class="btn btn-guide" href="${l.guide}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Guía</a>
+        ${videoBtn}
+      </div>
+    </div>`;
+  labGrid.appendChild(card);
+});
+
+/* ============================================================
+   JS 2. CALENDARIO / PROGRAMACIÓN
+   ============================================================ */
+// Actividades por fecha (clave dd/mm)
+const SCHEDULE={
+  "03/08":{t:"Introducción al Laboratorio de Mecánica",m:[]},
+  "10/08":{t:"Taller: Análisis de gráficos",m:["Hoja milimetrada","Calculadora","Hoja examen"]},
+  "24/08":{t:"Laboratorio 1: Medidas y Errores",m:["Preinforme","Tablas para toma de datos","Calculadora"]},
+  "31/08":{t:"Análisis de datos — Medidas y Errores",m:["Datos de la práctica anterior","Hojas examen","Calculadora"]},
+  "07/09":{t:"Laboratorio 2: Ley de Hooke",m:["Preinforme","Tablas para toma de datos","Calculadora"]},
+  "14/09":{t:"Análisis de datos — Ley de Hooke",m:["Datos de la práctica anterior","Hojas examen","Calculadora"]},
+  "21/09":{t:"Laboratorio 3: Péndulo Simple",m:["Preinforme","Tablas para toma de datos","Calculadora"]},
+  "28/09":{t:"Análisis de datos — Péndulo Simple",m:["Datos de la práctica anterior","Hojas examen","Calculadora"]},
+  "05/10":{t:"Laboratorio 4: Suma de Vectores",m:["Preinforme","Tablas para toma de datos","Calculadora"]},
+  "19/10":{t:"Análisis de datos — Suma de Vectores",m:["Datos de la práctica anterior","Hojas examen","Calculadora"]},
+  "26/10":{t:"Laboratorio 5: Velocidad Media e Instantánea",m:["Preinforme","Tablas para toma de datos","Calculadora"]},
+  "09/11":{t:"Análisis de datos — Velocidad Media e Instantánea",m:["Datos de la práctica anterior","Hojas examen","Calculadora"]}
+};
+// Festivos colombianos (lunes) — sin práctica
+const HOLIDAYS={"17/08":"Asunción de la Virgen","12/10":"Día de la Raza","02/11":"Día de Todos los Santos","16/11":"Independencia de Cartagena"};
+
+// Meses a mostrar: cada lunes de agosto→noviembre 2026
+const MONTHS=[
+  {name:"Agosto",num:8,year:2026},
+  {name:"Septiembre",num:9,year:2026},
+  {name:"Octubre",num:10,year:2026},
+  {name:"Noviembre",num:11,year:2026}
+];
+const DOW=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+
+function mondaysOf(month,year){
+  const list=[]; const d=new Date(year,month-1,1);
+  while(d.getMonth()===month-1){ if(d.getDay()===1) list.push(new Date(d)); d.setDate(d.getDate()+1); }
+  return list;
+}
+const cal=document.getElementById('calendar');
+MONTHS.forEach(M=>{
+  const box=document.createElement('div'); box.className='month reveal';
+  let rows='';
+  mondaysOf(M.num,M.year).forEach(date=>{
+    const dd=String(date.getDate()).padStart(2,'0');
+    const mm=String(M.num).padStart(2,'0');
+    const key=`${dd}/${mm}`;
+    if(HOLIDAYS[key]){
+      rows+=`<div class="monday holiday"><span class="date">${dd}<small>FESTIVO</small></span><span class="label">${HOLIDAYS[key]}</span></div>`;
+    }else if(SCHEDULE[key]){
+      const data=JSON.stringify(SCHEDULE[key]).replace(/'/g,"&#39;");
+      rows+=`<div class="monday work" data-info='${data}'><span class="date">${dd}<small>LUNES</small></span><span class="label">${SCHEDULE[key].t}</span></div>`;
+    }else{
+      rows+=`<div class="monday off"><span class="date">${dd}<small>LUNES</small></span><span class="label">Sin actividad</span></div>`;
+    }
+  });
+  box.innerHTML=`<h3>${M.name}</h3><div class="mono">${M.year}</div><div class="mondays">${rows}</div>`;
+  cal.appendChild(box);
+});
+
+/* Tooltip elegante con actividad + materiales */
+const tip=document.getElementById('tooltip');
+function showTip(el,e){
+  const info=JSON.parse(el.getAttribute('data-info'));
+  let mats = info.m.length
+    ? `<div class="mat-title">Materiales</div><ul>${info.m.map(x=>`<li>${x}</li>`).join('')}</ul>`
+    : `<ul><li>Sesión introductoria — sin materiales</li></ul>`;
+  tip.innerHTML=`<h4>${info.t}</h4>${mats}`;
+  tip.classList.add('show'); moveTip(e);
+}
+function moveTip(e){
+  const pad=16, w=tip.offsetWidth, h=tip.offsetHeight;
+  let x=e.clientX+pad, y=e.clientY+pad;
+  if(x+w>innerWidth) x=e.clientX-w-pad;
+  if(y+h>innerHeight) y=e.clientY-h-pad;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+document.querySelectorAll('.monday.work').forEach(el=>{
+  el.addEventListener('mouseenter',e=>showTip(el,e));
+  el.addEventListener('mousemove',moveTip);
+  el.addEventListener('mouseleave',()=>tip.classList.remove('show'));
+});
+
+/* ============================================================
+   JS 3. SCROLL REVEAL
+   ============================================================ */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{ if(en.isIntersecting){en.target.classList.add('in'); io.unobserve(en.target);} });
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ============================================================
+   JS 4. PROGRESO DE LECTURA + BOTÓN ARRIBA + NAV ACTIVO
+   ============================================================ */
+const bar=document.getElementById('progress-bar');
+const toTop=document.getElementById('to-top');
+const navLinks=[...document.querySelectorAll('#nav-links a')];
+const sections=['hero','recursos','laboratorios','programacion','contacto'].map(id=>document.getElementById(id));
+function onScroll(){
+  const st=scrollY, h=document.body.scrollHeight-innerHeight;
+  bar.style.width=(st/h*100)+'%';
+  toTop.classList.toggle('show',st>500);
+  // nav activo
+  let cur=sections[0].id;
+  sections.forEach(s=>{ if(s && s.getBoundingClientRect().top<=innerHeight*0.35) cur=s.id; });
+  navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur));
+}
+addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+/* Menú móvil */
+document.getElementById('nav-toggle').onclick=()=>document.getElementById('nav-links').classList.toggle('open');
+navLinks.forEach(a=>a.onclick=()=>document.getElementById('nav-links').classList.remove('open'));
+
+/* ============================================================
+   JS 5. HERO — CAMPO DE ESTRELLAS (canvas)
+   ============================================================ */
+const starC=document.getElementById('stars'), sx=starC.getContext('2d');
+let stars=[];
+function initStars(){
+  starC.width=innerWidth; starC.height=starC.parentElement.offsetHeight;
+  stars=Array.from({length:Math.min(160,innerWidth/9)},()=>({
+    x:Math.random()*starC.width,y:Math.random()*starC.height,
+    r:Math.random()*1.4+.3,a:Math.random(),tw:Math.random()*.02+.005,
+    vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12
+  }));
+}
+function drawStars(){
+  sx.clearRect(0,0,starC.width,starC.height);
+  stars.forEach(s=>{
+    s.a+=s.tw; const al=.4+Math.abs(Math.sin(s.a))*.6;
+    s.x+=s.vx; s.y+=s.vy;
+    if(s.x<0)s.x=starC.width; if(s.x>starC.width)s.x=0;
+    if(s.y<0)s.y=starC.height; if(s.y>starC.height)s.y=0;
+    sx.beginPath(); sx.arc(s.x,s.y,s.r,0,7); 
+    sx.fillStyle=`rgba(180,230,255,${al})`; sx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+
+/* ============================================================
+   JS 6. HERO — OBJETOS FÍSICOS EN MOVIMIENTO (canvas)
+   planetas orbitando, satélite, avión, tren, parábola, vectores
+   ============================================================ */
+const objC=document.getElementById('hero-objects'), ox=objC.getContext('2d');
+let t0=0;
+function sizeObj(){ objC.width=innerWidth; objC.height=objC.parentElement.offsetHeight; }
+function drawObjects(ts){
+  const t=ts*0.001; sizeObj===undefined; 
+  ox.clearRect(0,0,objC.width,objC.height);
+  const W=objC.width,H=objC.height;
+
+  // --- Sistema orbital (arriba izquierda) ---
+  const cx=W*0.16, cy=H*0.24;
+  ox.strokeStyle='rgba(126,243,255,.14)'; ox.lineWidth=1;
+  [40,66].forEach(R=>{ox.beginPath();ox.arc(cx,cy,R,0,7);ox.stroke();});
+  ox.fillStyle='rgba(255,220,120,.9)'; ox.beginPath();ox.arc(cx,cy,7,0,7);ox.fill();
+  // planeta 1
+  let a1=t*0.6; ox.fillStyle='#3ee6ff';
+  ox.beginPath();ox.arc(cx+Math.cos(a1)*40,cy+Math.sin(a1)*40,4,0,7);ox.fill();
+  // planeta 2 + satélite
+  let a2=t*0.38, px=cx+Math.cos(a2)*66, py=cy+Math.sin(a2)*66;
+  ox.fillStyle='#8b7cff'; ox.beginPath();ox.arc(px,py,5,0,7);ox.fill();
+  let a3=t*2.4; ox.fillStyle='#eaf3ff';
+  ox.beginPath();ox.arc(px+Math.cos(a3)*11,py+Math.sin(a3)*11,2,0,7);ox.fill();
+
+  // --- Trayectoria parabólica (proyectil) ---
+  ox.strokeStyle='rgba(62,230,255,.35)'; ox.setLineDash([4,6]); ox.lineWidth=1.4;
+  ox.beginPath();
+  const bx=W*0.55, by=H*0.8;
+  for(let i=0;i<=60;i++){const px2=bx+i*3.2; const py2=by-(i*3.2)*Math.tan(1.0)+0.0016*Math.pow(i*3.2,2); if(py2<H)ox.lineTo(px2,py2);}
+  ox.stroke(); ox.setLineDash([]);
+  // proyectil sobre la parábola
+  let pp=(t*0.18)%1, i=pp*60, projx=bx+i*3.2, projy=by-(i*3.2)*Math.tan(1.0)+0.0016*Math.pow(i*3.2,2);
+  if(projy<H){ox.fillStyle='#ff6b85';ox.beginPath();ox.arc(projx,projy,4,0,7);ox.fill();}
+
+  // --- Avión cruzando (lento) ---
+  let planeX=((t*26)% (W+120))-60, planeY=H*0.16;
+  ox.save(); ox.translate(planeX,planeY); ox.fillStyle='rgba(234,243,255,.85)';
+  ox.beginPath(); ox.moveTo(0,0);ox.lineTo(-18,4);ox.lineTo(-6,4);ox.lineTo(-10,10);ox.lineTo(-2,5);ox.lineTo(-14,5);ox.closePath(); ox.fill();
+  ox.restore();
+
+  // --- Tren / vagón (abajo, lento) ---
+  let trainX=((t*20)%(W+160))-100, trainY=H*0.92;
+  ox.strokeStyle='rgba(126,243,255,.2)';ox.beginPath();ox.moveTo(0,trainY+10);ox.lineTo(W,trainY+10);ox.stroke();
+  ox.fillStyle='rgba(139,124,255,.7)';
+  for(let k=0;k<3;k++){ox.fillRect(trainX+k*30,trainY-8,26,14);}
+  
+  // --- Vector flotante ---
+  let vAng=Math.sin(t*0.5)*0.5, vx0=W*0.82, vy0=H*0.5;
+  ox.strokeStyle='rgba(62,230,255,.5)';ox.lineWidth=2;
+  ox.beginPath();ox.moveTo(vx0,vy0);ox.lineTo(vx0+Math.cos(vAng)*46,vy0+Math.sin(vAng)*46);ox.stroke();
+
+  // --- Partículas luminosas ambientales ---
+  for(let p=0;p<14;p++){
+    let px3=(W*(p/14)+t*12*(p%3+1))%W, py3=H*0.5+Math.sin(t*0.6+p)*H*0.3;
+    ox.fillStyle=`rgba(126,243,255,${.15+0.15*Math.sin(t+p)})`;
+    ox.beginPath();ox.arc(px3,py3,1.6,0,7);ox.fill();
+  }
+  requestAnimationFrame(drawObjects);
+}
+
+/* ============================================================
+   JS 7. CONSTELACIÓN ANIMADA (sección final)
+   ============================================================ */
+const conC=document.getElementById('constellation'), cx2=conC.getContext('2d');
+let cnodes=[];
+function initCon(){
+  conC.width=conC.parentElement.offsetWidth; conC.height=conC.parentElement.offsetHeight;
+  cnodes=Array.from({length:Math.min(46,conC.width/22)},()=>({
+    x:Math.random()*conC.width,y:Math.random()*conC.height,
+    vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*1.6+.6
+  }));
+}
+function drawCon(){
+  cx2.clearRect(0,0,conC.width,conC.height);
+  cnodes.forEach(n=>{
+    n.x+=n.vx;n.y+=n.vy;
+    if(n.x<0||n.x>conC.width)n.vx*=-1;
+    if(n.y<0||n.y>conC.height)n.vy*=-1;
+    cx2.beginPath();cx2.arc(n.x,n.y,n.r,0,7);cx2.fillStyle='rgba(126,243,255,.7)';cx2.fill();
+  });
+  for(let i=0;i<cnodes.length;i++)for(let j=i+1;j<cnodes.length;j++){
+    const a=cnodes[i],b=cnodes[j],dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
+    if(d<120){cx2.strokeStyle=`rgba(139,124,255,${(1-d/120)*0.35})`;cx2.lineWidth=.7;
+      cx2.beginPath();cx2.moveTo(a.x,a.y);cx2.lineTo(b.x,b.y);cx2.stroke();}
+  }
+  requestAnimationFrame(drawCon);
+}
+
+/* ============================================================
+   JS 8. PARALLAX SUAVE del hero
+   ============================================================ */
+addEventListener('scroll',()=>{
+  const y=scrollY;
+  document.querySelectorAll('.eq').forEach((e,i)=>{ e.style.transform=`translateY(${y*(0.06+i*0.01)}px)`; });
+},{passive:true});
+
+/* ============================================================
+   JS 9. INICIALIZACIÓN + RESIZE
+   ============================================================ */
+function boot(){ initStars(); sizeObj(); initCon(); }
+addEventListener('resize',boot);
+boot();
+requestAnimationFrame(drawStars);
+requestAnimationFrame(drawObjects);
+requestAnimationFrame(drawCon);
+</script>
+</body>
+</html>
